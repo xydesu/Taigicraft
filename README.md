@@ -85,7 +85,7 @@ Use Taigi (Taiwanese) in Minecraft.<br/>
 <h2>Support</h2>
 <ul>
 <li><a href="https://github.com/milkteamc/Taigicraft/issues">GitHub issues</a></li>
-<li><a href="https://discord.gg/DCnTeBsSHY">Discord</a></li>
+<li><a href="https://t.me/taigicraft">Telegram</a></li>
 </ul>
 <h2>Credits</h2>
 <ul>
