@@ -102,10 +102,18 @@ async function main() {
     );
 
     if (isChineseText(value)) {
-      const translatedValue = await translate(value);
-      console.log(`Result: ${translatedValue}`);
-      translated[key] = translatedValue;
-      await saveTranslationMap(translated);
+      try {
+        const translatedValue = await translate(value);
+        console.log(`Result: ${translatedValue}`);
+        translated[key] = translatedValue;
+        await saveTranslationMap(translated);
+      } catch (err) {
+        console.error(`Translate failed for ${key}:`, err);
+        // Preserve original text so the file remains usable, then continue.
+        translated[key] = value;
+        await saveTranslationMap(translated);
+        continue;
+      }
     } else {
       translated[key] = value;
       await saveTranslationMap(translated);
