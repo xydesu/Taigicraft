@@ -5,32 +5,32 @@
 </a>
 
 <h1>Taigicraft</h1>
-佇方塊遊戲內底使用臺語。<br/>
+Tī Minecraft 內底使用台語。<br/>
 在 Minecraft 內使用臺灣台語。<br/>
 Use Taigi (Taiwanese) in Minecraft.<br/>
 </div>
 
 <details open>
-<summary>使用的方式 (臺語)</summary>
-<h2>使用的方式</h2>
-<h3>予使用者</h3>
+<summary>使用ê方法（台語）</summary>
+<h2>使用ê方法</h2>
+<h3>Hōo使用者</h3>
 <ol>
-<li>對阮的 <a href="https://modrinth.com/project/taigicraft">Modrinth 頁面</a>下載資源包。</li>
-<li>共伊囥入去方塊遊戲的資料鋏中，紲落來佇咧遊戲內底啟用伊。</li>
-<li>揣著語言設定，並且共語言設定做臺灣台語。</li>
-<li>開始耍方塊遊戲！</li>
+<li>Tī阮ê <a href="https://modrinth.com/project/taigicraft">Modrinth 頁面</a>下載資源包。</li>
+<li>Kā伊囥入 Minecraft ê資源包資料夾內，然後tī遊戲中kā伊開啟。</li>
+<li>揣著言語設定，kā言語設定做臺灣台語。</li>
+<li>開始耍！</li>
 </ol>
-<h3>予翻譯貢獻者</h3>
+<h3>Hōo翻譯貢獻者</h3>
 <ol>
 <li>Fork 這个 repo。</li>
-<li>檢查並修改 <code>files/dev/version</code> 檔案中的字串。</li>
+<li>檢查Kah修改 <code>files/dev/version</code> 檔案中ê字。</li>
 <li>開一个 Pull Request。</li>
 </ol>
-<h3>予開發者</h3>
+<h3>Hōo開發者</h3>
 <ol>
-<li><code>deno run t</code> 予系統初步翻譯文字。</li>
+<li><code>deno run t</code> Hōo系統初步翻譯文字。</li>
 <li><code>deno run b [版本號碼]</code> 將檔案做成一个 <code>.zip</code> 資源包檔案。</li>
-<li>佇咧 <code>output/</code> 資料鋏內底揣著資源包，並且共複製過方塊遊戲的資料鋏中。</li>
+<li>佇咧 <code>output/</code> 資料夾內底揣著資源包，並且共複製過方塊遊戲的資料夾中。</li>
 </ol>
 </details>
 
