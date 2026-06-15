@@ -15,7 +15,7 @@ Use Taigi (Taiwanese) in Minecraft.<br/>
 <h2>使用的方式</h2>
 <h3>予使用者</h3>
 <ol>
-<li>對咱的 <a href="https://modrinth.com/project/taigicraft">Modrinth 頁面</a>下載資源包。</li>
+<li>對阮的 <a href="https://modrinth.com/project/taigicraft">Modrinth 頁面</a>下載資源包。</li>
 <li>共伊囥入去方塊遊戲的資料鋏中，紲落來佇咧遊戲內底啟用伊。</li>
 <li>揣著語言設定，並且共語言設定做臺灣台語。</li>
 <li>開始耍方塊遊戲！</li>
