@@ -110,7 +110,7 @@ async function main() {
       } catch (err) {
         console.error(`Translate failed for ${key}:`, err);
         // Preserve original text so the file remains usable, then continue.
-        translated[key] = value;
+        translated[key] = "[UNTRANSLATED] " + value;
         await saveTranslationMap(translated);
         continue;
       }
