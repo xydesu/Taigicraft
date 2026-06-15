@@ -1,90 +1,118 @@
-import { Client } from "@gradio/client";
+import { createTranslationClient } from "./module.ts";
 
-try {
-  await Deno.mkdir("data");
-  await Deno.mkdir("output");
-  // deno-lint-ignore no-empty
-} catch (_) {}
-let oldExists = true;
-let translatedExists = true;
-try {
-  await Deno.lstat("data/zh_tw.json");
-} catch (err) {
-  oldExists = false;
-  if (!(err instanceof Deno.errors.NotFound)) {
-    throw err;
+const DATA_DIR = "data";
+const OUTPUT_DIR = "output";
+const SOURCE_FILE = `${DATA_DIR}/zh_tw.json`;
+const TRANSLATED_FILE = `${DATA_DIR}/translated.txt`;
+
+type TranslationMap = Record<string, string>;
+
+function isChineseText(value: string) {
+  return /.*\p{Unified_Ideograph}.*/gv.test(value);
+}
+
+async function fetchLatestZhTwFile() {
+  return await (
+    await fetch(
+      "https://assets.mcasset.cloud/latest/assets/minecraft/lang/zh_tw.json",
+    )
+  ).text();
+}
+
+async function ensureWorkspace() {
+  try {
+    await Deno.mkdir(DATA_DIR);
+    await Deno.mkdir(OUTPUT_DIR);
+    // deno-lint-ignore no-empty
+  } catch (_) {}
+}
+
+async function ensureFile(path: string) {
+  try {
+    await Deno.lstat(path);
+    return true;
+  } catch (err) {
+    if (!(err instanceof Deno.errors.NotFound)) {
+      throw err;
+    }
+    await Deno.create(path);
+    return false;
   }
-  await Deno.create("data/zh_tw.json");
 }
-try {
-  await Deno.lstat("data/translated.txt");
-} catch (err) {
-  translatedExists = false;
-  if (!(err instanceof Deno.errors.NotFound)) {
-    throw err;
-  }
-  await Deno.create("data/translated.txt");
+
+async function loadTranslationMap(path: string, exists: boolean) {
+  return JSON.parse(
+    exists ? await Deno.readTextFile(path) : "{\n}",
+  ) as TranslationMap;
 }
-const app = await Client.connect("https://mute-rice-9103.maoyue.workers.dev/");
-const translated = JSON.parse(
-  translatedExists ? await Deno.readTextFile("data/translated.txt") : "{\n}"
-);
-const oldFile = oldExists ? await Deno.readTextFile("data/zh_tw.json") : "{\n}";
-const newFile = await (
-  await fetch(
-    "https://assets.mcasset.cloud/latest/assets/minecraft/lang/zh_tw.json"
-  )
-).text();
-if (oldFile == newFile) {
-  console.log("No updates, exiting...");
-  Deno.exit(0);
+
+function getNewLines(oldFile: string, newFile: string) {
+  const oldFileLines = oldFile.split("\n");
+  const newFileLines = newFile.split("\n");
+  return newFileLines.filter((line) => !oldFileLines.includes(line));
 }
-await Deno.writeTextFile("data/zh_tw.json", newFile);
-const oldFileLines = oldFile.split("\n");
-const newFileLines = newFile.split("\n");
-const newLines = newFileLines.filter((x) => !oldFileLines.includes(x));
 
-const totalItems = newLines.length;
-let processedItems = 0;
-
-for await (const line of newLines) {
-  processedItems++;
-  const progressPercentage = Math.floor((processedItems / totalItems) * 100);
-
+function parseKeyValue(line: string) {
   const processedLine = line.endsWith(",")
     ? line.trim().slice(0, -1)
     : line.trim();
-  const obj = JSON.parse(`{${processedLine}}`);
+  const obj = JSON.parse(`{${processedLine}}`) as Record<string, string>;
   const key = Object.keys(obj)[0];
-  const value = obj[key];
-
-  console.log(
-    `[${processedItems}/${totalItems} ${progressPercentage}%] Translating ${value} (${key})...`
-  );
-
-  let response = await app.predict("/predict", [[], value, "taigi_zh_tw"]);
-  let responseData = response.data as string[];
-  console.log(`Result: ${responseData[0]}`);
-  let translatedValue = responseData[0].replaceAll("\n", "\\n");
-  const run = async () => {
-    if (translatedValue.includes("請求過於頻繁，請稍候再試。")) {
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-      response = await app.predict("/predict", [[], value, "taigi_zh_tw"]);
-      responseData = response.data as string[];
-      console.log(`Result: ${responseData[0]}`);
-      translatedValue = responseData[0]
-        .replaceAll("\\", "\\\\")
-        .replaceAll("\n", "\\n")
-        .replaceAll('"', '\\"');
-      if (translatedValue.includes("請求過於頻繁，請稍候再試。")) await run();
-    } else {
-      translated[key] = translatedValue;
-      await Deno.writeTextFile(
-        "data/translated.txt",
-        JSON.stringify(translated, null, 2),
-      );
-    }
-  };
-  await run();
+  return { key, value: obj[key] };
 }
-console.log(`[${totalItems}/${totalItems} 100%] Translation complete.`);
+
+async function saveTranslationMap(translated: TranslationMap) {
+  await Deno.writeTextFile(
+    TRANSLATED_FILE,
+    JSON.stringify(translated, null, 2),
+  );
+}
+
+async function main() {
+  await ensureWorkspace();
+
+  const oldExists = await ensureFile(SOURCE_FILE);
+  const translatedExists = await ensureFile(TRANSLATED_FILE);
+  const translate = await createTranslationClient();
+  const translated = await loadTranslationMap(
+    TRANSLATED_FILE,
+    translatedExists,
+  );
+  const oldFile = oldExists ? await Deno.readTextFile(SOURCE_FILE) : "{\n}";
+  const newFile = await fetchLatestZhTwFile();
+
+  if (oldFile == newFile) {
+    console.log("No updates, exiting...");
+    Deno.exit(0);
+  }
+
+  await Deno.writeTextFile(SOURCE_FILE, newFile);
+
+  const newLines = getNewLines(oldFile, newFile);
+  const totalItems = newLines.length;
+  let processedItems = 0;
+
+  for await (const line of newLines) {
+    processedItems++;
+    const progressPercentage = Math.floor((processedItems / totalItems) * 100);
+    const { key, value } = parseKeyValue(line);
+
+    console.log(
+      `[${processedItems}/${totalItems} ${progressPercentage}%] Translating ${value} (${key})...`,
+    );
+
+    if (isChineseText(value)) {
+      const translatedValue = await translate(value);
+      console.log(`Result: ${translatedValue}`);
+      translated[key] = translatedValue;
+      await saveTranslationMap(translated);
+    } else {
+      translated[key] = value;
+      await saveTranslationMap(translated);
+    }
+  }
+
+  console.log(`[${totalItems}/${totalItems} 100%] Translation complete.`);
+}
+
+await main();
